@@ -11,6 +11,8 @@ HINSTANCE hInst;                                // 目前執行個體
 WCHAR szTitle[MAX_LOADSTRING];                  // 標題列文字
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主視窗類別名稱
 
+HWND currentHWND;
+
 // 這個程式碼模組中所包含之函式的向前宣告: 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -66,6 +68,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
 
+	
+
     wcex.cbSize = sizeof(WNDCLASSEX);
 
     wcex.style          = CS_HREDRAW | CS_VREDRAW;
@@ -76,7 +80,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CPLUSPLUSTEST));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_CPLUSPLUSTEST);
+	wcex.lpszMenuName	= NULL;//MAKEINTRESOURCEW(IDC_CPLUSPLUSTEST);
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -97,8 +101,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 將執行個體控制代碼儲存在全域變數中
 
+   //創建視窗的HWND
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+ 
+   currentHWND = hWnd;
 
    if (!hWnd)
    {
@@ -109,6 +116,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    UpdateWindow(hWnd);
 
    return TRUE;
+}
+
+HWND GetCurrentHWND()
+{
+	return currentHWND;
 }
 
 //
@@ -123,6 +135,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	LPCWSTR msgText = L"Hello Message";
+	LPCWSTR msgTitle = L"Demo";
+
+
     switch (message)
     {
     case WM_COMMAND:
@@ -153,6 +169,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+	case WM_LBUTTONDOWN:
+		//HWND如果傳NULL代表所有者是桌面
+		//Windows裡的窗口都是透過HWND操作
+		MessageBoxW(GetCurrentHWND(), msgText, msgTitle, MB_OK);
+		break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
